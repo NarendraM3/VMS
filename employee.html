@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Portal - Quadrant Technologies</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: #f0f2f5; color: #1e2330; }
+
+        /* ── Field ── */
+        .field-input {
+            width: 100%; padding: 10px 13px;
+            border: 1px solid #dde1e8; border-radius: 8px;
+            font-size: 13.5px; color: #1e2330; background: white; outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .field-input:focus { border-color: #4a6fa5; box-shadow: 0 0 0 3px rgba(74,111,165,0.12); }
+        .field-input::placeholder { color: #adb5c2; }
+        .field-input:read-only { background: #f7f8fa; color: #6b7280; }
+
+        /* ── Buttons ── */
+        .btn-primary   { background: #2c3e5d; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13.5px; font-weight: 500; cursor: pointer; transition: background 0.15s; width: 100%; }
+        .btn-primary:hover { background: #3a5278; }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-secondary { background: white; color: #3d4a5c; border: 1px solid #dde1e8; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+        .btn-secondary:hover { background: #f7f8fa; }
+        .btn-blue-sm   { background: #eef2f9; color: #3a5a9b; border: 1px solid #c3d2ea; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+        .btn-blue-sm:hover { background: #dce6f5; }
+        .btn-amber-sm  { background: #fdf8ee; color: #9a6800; border: 1px solid #e8d49a; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+        .btn-amber-sm:hover { background: #f7edcc; }
+        .btn-green-sm  { background: #edf7f2; color: #1a6640; border: 1px solid #9fd6b8; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+        .btn-green-sm:hover { background: #d5eddf; }
+
+        /* ── Sidebar ── */
+        .sidebar { width: 240px; background: #2c3e5d; display: flex; flex-direction: column; }
+        .sidebar-logo { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .sidebar-nav  { flex: 1; padding: 16px 12px; }
+        .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; cursor: pointer; color: #a8bad6; font-size: 13.5px; font-weight: 500; transition: all 0.15s; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.10); color: white; }
+        .nav-item svg { opacity: 0.7; }
+        .nav-item:hover svg, .nav-item.active svg { opacity: 1; }
+
+        /* ── Card ── */
+        .card { background: white; border-radius: 12px; border: 1px solid #e2e6ed; }
+
+        /* ── Table ── */
+        .tbl-head th { background: #f4f6fa; color: #6b7a8d; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 11px 14px !important; white-space: nowrap; border-bottom: 1px solid #e2e6ed; }
+        .tbl-body tr { border-bottom: 1px solid #f0f2f5; transition: background 0.1s; }
+        .tbl-body tr:hover { background: #f7f9fc; }
+        .tbl-body td { padding: 11px 14px !important; font-size: 13px; vertical-align: middle; color: #3d4a5c; }
+        .tbl-body tr:last-child { border-bottom: none; }
+
+        /* ── Login ── */
+        .login-wrap { min-height: 100vh; background: #f0f2f5; display: flex; align-items: center; justify-content: center; }
+        .login-card { background: white; border: 1px solid #e2e6ed; border-radius: 16px; box-shadow: 0 4px 24px rgba(44,62,93,0.08); max-width: 400px; width: 100%; padding: 36px 32px; }
+
+        /* ── Form label ── */
+        .field-label { display: block; font-size: 12px; font-weight: 500; color: #6b7a8d; margin-bottom: 6px; }
+
+        /* ── Visitor box scroll ── */
+        .visitors-panel { display: flex; flex-direction: column; overflow: hidden; }
+        .visitors-scroll { flex: 1; overflow-y: auto; }
+    </style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="loginScreen" class="login-wrap fixed inset-0 z-50">
+    <div class="login-card mx-4">
+        <div class="text-center mb-8">
+            <div style="width:48px;height:48px;background:#2c3e5d;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:20px;margin:0 auto;">Q</div>
+            <h1 class="text-xl font-semibold text-gray-900 mt-4">Employee Portal</h1>
+            <p class="text-gray-400 text-sm mt-1">Quadrant Technologies</p>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="field-label">Full Name</label>
+                <input id="loginName" class="field-input">
+            </div>
+            <div>
+                <label class="field-label">Employee ID</label>
+                <input id="loginEmpId" class="field-input">
+            </div>
+            <button onclick="performLogin()" class="btn-primary mt-1">Sign In</button>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard" class="hidden flex h-screen">
+
+    <!-- Sidebar -->
+    <div class="sidebar flex-shrink-0">
+        <div class="sidebar-logo">
+            <div class="flex items-center gap-2.5">
+                <div style="width:32px;height:32px;background:rgba(255,255,255,0.12);border-radius:7px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;">Q</div>
+                <div>
+                    <div class="text-white font-semibold text-sm">Quadrant</div>
+                    <div style="color:#6b7280;font-size:11px;">Technologies</div>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-item active" onclick="refreshMyVisitors()">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                My Visitors
+            </div>
+        </div>
+        <div style="padding:16px 20px;border-top:1px solid rgba(255,255,255,0.08);">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:32px;height:32px;background:rgba(255,255,255,0.10);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;">👤</div>
+                <div>
+                    <div class="text-white text-xs font-medium" id="empName">—</div>
+                    <div style="color:#6b7280;font-size:11px;">Employee</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+
+        <!-- Top nav -->
+        <nav style="background:white;border-bottom:1px solid #e9eaec;padding:14px 28px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">Visitor Entry</h2>
+                <p style="font-size:12px;color:#9ca3af;margin-top:1px;">Register and manage visitors</p>
+            </div>
+            <div class="relative flex items-center gap-3">
+                <div onclick="toggleProfileDropdown()" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 cursor-pointer transition-all">
+                    <div style="width:30px;height:30px;background:#f1f2f4;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;">👤</div>
+                    <div>
+                        <div class="font-medium text-xs text-gray-800" id="empNameNav"></div>
+                        <div style="font-size:11px;color:#9ca3af;">Employee</div>
+                    </div>
+                    <svg width="11" height="11" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                </div>
+                <div id="profileDropdown" class="hidden absolute top-12 right-0 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-50 w-52">
+                    <div class="px-4 py-2.5 border-b border-gray-50">
+                        <div style="font-size:11px;color:#9ca3af;">Signed in as</div>
+                        <div class="font-medium text-sm text-gray-800" id="dropdownEmpName"></div>
+                    </div>
+                    <button onclick="logout()" class="w-full px-4 py-2.5 text-left hover:bg-red-50 text-red-600 text-sm flex items-center gap-2">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content grid -->
+        <div class="flex-1 overflow-auto p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+
+                <!-- Register Form -->
+                <div class="card p-6">
+                    <div class="mb-5">
+                        <h3 class="text-base font-semibold text-gray-900">Register New Visitor</h3>
+                        <p style="font-size:12px;color:#9ca3af;margin-top:2px;">Fill in details to register a visitor</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="field-label">Visitor Full Name <span class="text-red-400">(Letters only)</span></label>
+                            <input id="visitorName" onkeypress="return onlyLetters(event)" class="field-input" placeholder="Enter visitor name">
+                        </div>
+                        <div>
+                            <label class="field-label">Aadhaar Number <span class="text-red-400">(12 digits)</span></label>
+                            <input id="aadhaar" maxlength="14" oninput="formatAadhaar(this);validateAadhaarInline(this)" class="field-input" placeholder="1234 5678 9012">
+                            <p id="aadhaarError" class="text-xs mt-1" style="color:#dc2626;display:none;">⚠ Aadhaar must be exactly 12 digits</p>
+                        </div>
+                        <div>
+                            <label class="field-label">Visitor Email <span class="text-red-400">*</span> <span style="color:#9ca3af;">(must be @gmail.com)</span></label>
+                            <input id="visitorEmail" type="email" class="field-input" placeholder="visitor@gmail.com" oninput="validateEmailInline(this)">
+                            <p id="emailError" class="text-xs mt-1" style="color:#dc2626;display:none;">⚠ Email must end with @gmail.com</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="field-label">Date</label>
+                                <input id="date" type="date" class="field-input">
+                            </div>
+                            <div id="timeFieldWrap" style="display:none;">
+                                <label class="field-label">Time</label>
+                                <input id="time" type="time" class="field-input">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="field-label">Purpose of Visit</label>
+                            <input id="purpose" class="field-input" placeholder="Meeting / Interview / Official Work">
+                        </div>
+                        <div>
+                            <label class="field-label">Upload Aadhaar (Image / PDF)</label>
+                            <input id="aadhaarFile" type="file" accept="image/*,.pdf" class="field-input" style="padding:8px 12px;">
+                            <p id="fileStatus" class="text-xs mt-1" style="color:#9ca3af;"></p>
+                        </div>
+                        <div>
+                            <label class="field-label">Employee</label>
+                            <input id="employee" readonly class="field-input">
+                        </div>
+                        <button onclick="submitData()" class="btn-primary py-3">Submit Visitor Entry</button>
+                        <p id="msg" class="text-center text-sm font-medium min-h-[24px]"></p>
+                    </div>
+                </div>
+
+                <!-- My Visitors -->
+                <div class="card visitors-panel" style="height:calc(100vh - 160px);position:sticky;top:0;">
+                    <div style="padding:20px 20px 14px;border-bottom:1px solid #f1f2f4;flex-shrink:0;">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 class="text-base font-semibold text-gray-900">Recent Visitors</h3>
+                                <p style="font-size:12px;color:#9ca3af;margin-top:1px;">Your registered visitors</p>
+                            </div>
+                            <button onclick="refreshMyVisitors()" class="btn-secondary flex items-center gap-1.5 text-xs py-1.5 px-3">
+                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+                                Refresh
+                            </button>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="text" id="empSearch" placeholder="Search name or aadhaar…" class="field-input flex-1" style="padding:8px 11px;font-size:12.5px;">
+                            <input type="date" id="empSingleDate" class="field-input" style="width:auto;padding:8px 11px;font-size:12.5px;">
+                            <button onclick="refreshMyVisitors()" class="btn-primary" style="width:auto;padding:8px 14px;font-size:12.5px;">Apply</button>
+                        </div>
+                    </div>
+                    <div class="visitors-scroll">
+                        <table class="w-full" style="min-width:900px;">
+                            <thead class="tbl-head">
+                                <tr>
+                                    <th class="text-left">S.No</th>
+                                    <th class="text-left">Visitor ID</th>
+                                    <th class="text-left">Visitor</th>
+                                    <th class="text-left">Aadhaar</th>
+                                    <th class="text-left">Reg Date/Time</th>
+                                    <th class="text-left">Scheduled</th>
+                                    <th class="text-left">Entry Time</th>
+                                    <th class="text-left">Rescheduled</th>
+                                    <th class="text-left">Purpose</th>
+                                    <th class="text-left">Employee</th>
+                                    <th class="text-left">Doc</th>
+                                    <th class="text-left">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyBody" class="tbl-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reschedule Modal -->
+<div id="rescheduleModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
+    <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 p-7 max-w-md w-full mx-4">
+        <div class="flex justify-between items-start mb-5">
+            <div>
+                <h3 class="text-base font-semibold text-gray-900">Reschedule Visitor</h3>
+                <p id="modalVisitorName" class="text-sm text-gray-500 mt-0.5"></p>
+            </div>
+            <button onclick="closeRescheduleModal()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 text-xl">×</button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="field-label">New Date</label>
+                <input id="modalDate" type="date" class="field-input">
+            </div>
+            <div>
+                <label class="field-label">New Time</label>
+                <input id="modalTime" type="time" class="field-input">
+            </div>
+            <div>
+                <label class="field-label">New Purpose <span style="color:#9ca3af;">(optional)</span></label>
+                <input id="modalPurpose" class="field-input" placeholder="Updated purpose">
+            </div>
+        </div>
+        <div class="flex gap-3 mt-6">
+            <button onclick="closeRescheduleModal()" class="btn-secondary flex-1 py-2.5">Cancel</button>
+            <button onclick="performReschedule()" class="btn-primary flex-1 py-2.5" style="width:auto;">Update Schedule</button>
+        </div>
+    </div>
+</div>
+
+<!-- Aadhaar Modal -->
+<div id="aadhaarModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
+    <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 max-w-2xl w-full mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-base font-semibold text-gray-900">Aadhaar Document</h3>
+            <button onclick="closeAadhaarModal()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 text-xl">×</button>
+        </div>
+        <div id="aadhaarPreviewArea" class="flex items-center justify-center min-h-[300px] bg-gray-50 rounded-xl border border-dashed border-gray-200 overflow-auto"></div>
+    </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════════════════
+const API_BASE = "https://4ropzko5m1.execute-api.ap-south-1.amazonaws.com";
+const EMAILJS_PUBLIC_KEY  = "7WVy0kNxuxx3x-GKF";
+const EMAILJS_SERVICE_ID  = "service_pi70e8m";
+const EMAILJS_TEMPLATE_ID = "template_hsdj9vi";
+const EMAILJS_RESCHEDULE_TEMPLATE_ID = "template_hp1guja";
+emailjs.init(EMAILJS_PUBLIC_KEY);
+
+// ══════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════
+let currentEmployee        = "";
+let currentEmployeeId      = "";
+let currentEmployeeEmail   = "";
+let myVisitorsData         = [];
+let currentRescheduleIndex = -1;
+const aadhaarStore         = {};
+
+// ══════════════════════════════════════════════════════════
+//  API HELPER
+// ══════════════════════════════════════════════════════════
+async function apiCall(endpoint, options = {}) {
+    const url = `${API_BASE}${endpoint}`;
+    console.log(`📡 ${options.method||'GET'} ${url}`);
+    const res  = await fetch(url, { ...options, headers: { 'Content-Type':'application/json', ...(options.headers||{}) }, mode: 'cors' });
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) { data = { message: text }; }
+    if (!res.ok) throw new Error(data.error || data.message || `HTTP ${res.status}`);
+    return data;
+}
+
+// ══════════════════════════════════════════════════════════
+//  EMAILJS — send mail
+// ══════════════════════════════════════════════════════════
+async function sendVisitorMail({ to_email, visitor_name, visitor_id, visit_date, visit_time, purpose, emp_name, mail_type, templateId }) {
+    if (!to_email || to_email === "N/A") { console.warn("No visitor email — skipping mail."); return; }
+    const templateParams = { to_email, visitor_name, visitor_id, visit_date, visit_time, purpose, emp_name, mail_type };
+    const tid = templateId || EMAILJS_TEMPLATE_ID;
+    try {
+        const result = await emailjs.send(EMAILJS_SERVICE_ID, tid, templateParams);
+        console.log("✅ Email sent:", result.status, result.text);
+    } catch (err) { console.error("❌ Email failed:", err); }
+}
+
+// ══════════════════════════════════════════════════════════
+//  GENERATE VISITOR ID
+// ══════════════════════════════════════════════════════════
+async function generateVisitorId() {
+    try {
+        const data = await apiCall('/visitors');
+        const all  = Array.isArray(data) ? data : (data.Items || []);
+        return `QT${String(all.length + 1).padStart(3, '0')}`;
+    } catch(e) { return `QT${String(Date.now()).slice(-3)}`; }
+}
+
+// ══════════════════════════════════════════════════════════
+//  LOGIN
+// ══════════════════════════════════════════════════════════
+async function performLogin() {
+    const empIdInput   = document.getElementById('loginEmpId').value.trim();
+    const nameInput    = document.getElementById('loginName').value.trim().toLowerCase();
+    if (!empIdInput)  return alert("Please enter Employee ID");
+    if (!nameInput)   return alert("Please enter your Full Name");
+    try {
+        const data      = await apiCall('/user');
+        const employees = Array.isArray(data) ? data : (data.Items || []);
+        const user      = employees.find(u =>
+            String(u.emp_id||'').toLowerCase() === empIdInput.toLowerCase() &&
+            String(u.name||'').toLowerCase()   === nameInput &&
+            String(u.role||'').toLowerCase()   === "employee"
+        );
+        if (user) {
+            currentEmployee      = user.name  || "Employee";
+            currentEmployeeId    = user.emp_id;
+            currentEmployeeEmail = user.email || "";
+            document.getElementById("employee").value            = currentEmployee;
+            document.getElementById('empName').innerText         = currentEmployee;
+            document.getElementById('empNameNav').innerText      = currentEmployee;
+            document.getElementById('dropdownEmpName').innerText = currentEmployee;
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            refreshMyVisitors();
+            showMessage("Login successful!", "text-green-600");
+        } else {
+            alert("Access denied. Employee ID and Name do not match any record. Please check both fields.");
+        }
+    } catch(e) { alert("Cannot connect to server. Check CORS & API deployment."); }
+}
+
+// ══════════════════════════════════════════════════════════
+//  SUBMIT VISITOR
+// ══════════════════════════════════════════════════════════
+async function submitData() {
+    const visitorName = document.getElementById("visitorName").value.trim();
+    let   aadhaar     = document.getElementById("aadhaar").value.trim().replace(/\s+/g,'');
+    const email       = document.getElementById("visitorEmail").value.trim();
+    const purpose     = document.getElementById("purpose").value.trim();
+    const date        = document.getElementById("date").value;
+    const time        = document.getElementById("time").value;
+    const fileInput   = document.getElementById("aadhaarFile");
+    if (!visitorName || !purpose || !date || !time || aadhaar.length !== 12) return showMessage("Please fill all required fields correctly (Aadhaar must be 12 digits)", "text-red-600");
+    if (!email) return showMessage("Please enter visitor email to send confirmation", "text-red-600");
+    if (!email.toLowerCase().endsWith('@gmail.com')) return showMessage("Visitor email must be a @gmail.com address", "text-red-600");
+    const btn = document.querySelector('button[onclick="submitData()"]');
+    if (btn) btn.disabled = true;
+    try {
+        showMessage("Step 1/4: Generating Visitor ID…", "text-blue-600");
+        const visitor_id = await generateVisitorId();
+        let aadhaar_key = '';
+        const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+        if (file) {
+            let ext = 'jpg';
+            if      (file.type === 'application/pdf')                          ext = 'pdf';
+            else if (file.type.includes('png'))                                ext = 'png';
+            else if (file.type.includes('jpg') || file.type.includes('jpeg')) ext = 'jpg';
+            showMessage("Step 2/4: Getting S3 upload URL…", "text-blue-600");
+            try {
+                const urlRes  = await fetch(`${API_BASE}/upload-url?visitor_id=${visitor_id}&ext=${ext}`, { method: 'GET', headers: { 'Content-Type': 'application/json' }, mode: 'cors' });
+                const urlData = await urlRes.json();
+                if (!urlData.upload_url) throw new Error("No upload_url returned from Lambda");
+                const uploadUrl = urlData.upload_url;
+                aadhaar_key     = urlData.aadhaar_key;
+                showMessage("Step 3/4: Uploading Aadhaar…", "text-blue-600");
+                const uploadRes = await fetch(uploadUrl, { method: 'PUT', body: file });
+                if (!uploadRes.ok) { const errText = await uploadRes.text(); throw new Error(`S3 upload failed: ${uploadRes.status}`); }
+                const reader = new FileReader();
+                reader.onload = (e) => { aadhaarStore[visitor_id] = { dataUrl: e.target.result, type: file.type }; };
+                reader.readAsDataURL(file);
+                document.getElementById("fileStatus").textContent = `✓ ${file.name} uploaded`;
+            } catch(uploadErr) {
+                console.error("S3 upload error:", uploadErr);
+                showMessage("File upload failed — registering visitor without Aadhaar doc", "text-amber-600");
+                aadhaar_key = '';
+            }
+        }
+        showMessage("Step 4/4: Registering visitor…", "text-blue-600");
+        const istNow = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Kolkata' }).replace(' ', 'T') + '+05:30';
+        const payload = { visitor_id, name: visitorName, aadhaar, email, date, time, purpose, emp_name: currentEmployee, emp_id: currentEmployeeId, status: "pending", rescheduled_date: "", rescheduled_time: "", aadhaar_key, reg_time: istNow };
+        await apiCall('/register', { method:'POST', body:JSON.stringify(payload) });
+        await sendVisitorMail({ to_email: email, visitor_name: visitorName, visitor_id, visit_date: date, visit_time: time, purpose, emp_name: currentEmployee, mail_type: "New Visit Scheduled" });
+        showMessage(`Visitor Registered! ID: <strong>${visitor_id}</strong>${aadhaar_key ? ' · Aadhaar ✓' : ''} · Email sent`, "text-green-600");
+        document.getElementById("visitorName").value = ""; document.getElementById("aadhaar").value = "";
+        document.getElementById("visitorEmail").value = ""; document.getElementById("purpose").value = "";
+        document.getElementById("time").value = ""; document.getElementById("aadhaarFile").value = "";
+        document.getElementById("fileStatus").textContent = "";
+        refreshMyVisitors();
+    } catch(e) { console.error("submitData error:", e); showMessage("Error: " + e.message, "text-red-600"); }
+    finally { if (btn) btn.disabled = false; }
+}
+
+// ══════════════════════════════════════════════════════════
+//  LOAD MY VISITORS
+// ══════════════════════════════════════════════════════════
+async function refreshMyVisitors() {
+    const tbody = document.getElementById("historyBody");
+    tbody.innerHTML = `<tr><td colspan="12" class="p-10 text-center text-gray-400" style="font-size:13px;">Loading…</td></tr>`;
+    try {
+        const data      = await apiCall('/visitors');
+        let allVisitors = Array.isArray(data) ? data : (data.Items || []);
+        // Show ALL visitors to all employees
+        let myVisitors  = allVisitors;
+        const search     = document.getElementById("empSearch").value.toLowerCase().trim();
+        const dateFilter = document.getElementById("empSingleDate").value;
+        if (search) {
+            myVisitors = myVisitors.filter(v =>
+                (v.name       && v.name.toLowerCase().includes(search))      ||
+                (v.aadhaar    && v.aadhaar.includes(search))                  ||
+                (v.visitor_id && v.visitor_id.toLowerCase().includes(search)) ||
+                (v.purpose    && v.purpose.toLowerCase().includes(search))    ||
+                (v.email      && v.email.toLowerCase().includes(search))      ||
+                (v.emp_name   && v.emp_name.toLowerCase().includes(search))   ||
+                (v.status     && v.status.toLowerCase().includes(search))
+            );
+        }
+        if (dateFilter) myVisitors = myVisitors.filter(v => v.date&&v.date.split('T')[0]===dateFilter);
+        myVisitorsData  = [...myVisitors];
+        tbody.innerHTML = "";
+        if (myVisitors.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="12" class="p-10 text-center text-gray-400" style="font-size:13px;">No visitors found</td></tr>`;
+            return;
+        }
+        myVisitors.forEach((v, index) => {
+            const reschedHTML = v.rescheduled_date
+                ? `<span style="color:#b45309;font-weight:500;font-size:12px;">${v.rescheduled_date}</span>`
+                : `<span style="color:#d1d5db;">—</span>`;
+            const hasSession = aadhaarStore[v.visitor_id];
+            const hasS3      = v.aadhaar_key && v.aadhaar_key !== '';
+            let docBtn = `<span style="color:#d1d5db;font-size:12px;">None</span>`;
+            if (hasSession) { docBtn = `<button onclick="viewAadhaarSession('${v.visitor_id}')" class="btn-blue-sm">View</button>`; }
+            else if (hasS3) { docBtn = `<button onclick="viewAadhaarS3('${v.visitor_id}')" class="btn-green-sm">View</button>`; }
+            let regTimeHTML = `<span style="color:#d1d5db;">—</span>`;
+            if (v.reg_time) {
+                try {
+                    const rdt = new Date(v.reg_time);
+                    regTimeHTML = `<span style="color:#2563eb;font-size:12px;font-weight:500;">${rdt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</span>`;
+                } catch(e) { regTimeHTML = `<span style="font-size:12px;">${v.reg_time}</span>`; }
+            }
+            let entryTimeHTML = `<span style="color:#9ca3af;font-size:12px;">Not checked in</span>`;
+            if (v.in_time) {
+                try {
+                    const dt = new Date(v.in_time);
+                    entryTimeHTML = `<span style="color:#15803d;font-weight:500;font-size:12px;">${dt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</span>`;
+                } catch(e) { entryTimeHTML = `<span style="color:#15803d;font-size:12px;">${v.in_time}</span>`; }
+            }
+            const isMyVisitor = v.emp_id && String(v.emp_id).toLowerCase() === String(currentEmployeeId).toLowerCase();
+            const empNameDisplay = v.emp_name
+                ? `<span style="font-size:12px;color:${isMyVisitor?'#2563eb':'#374151'};font-weight:${isMyVisitor?'600':'400'};">${v.emp_name}${isMyVisitor ? ' <span style="background:#dbeafe;color:#1d4ed8;font-size:10px;padding:1px 5px;border-radius:4px;font-weight:600;">You</span>' : ''}</span>`
+                : `<span style="color:#d1d5db;">—</span>`;
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td style="color:#9ca3af;">${index+1}</td>
+                <td style="font-weight:600;color:#1a1d23;font-family:monospace;font-size:12px;">${v.visitor_id||'—'}</td>
+                <td style="font-weight:500;">${v.name||'—'}</td>
+                <td style="font-size:12px;color:#6b7280;">${v.aadhaar||'—'}</td>
+                <td>${regTimeHTML}</td>
+                <td style="font-size:12px;color:#374151;">${v.date?v.date.split('T')[0]:''} ${v.time||''}</td>
+                <td>${entryTimeHTML}</td>
+                <td>${reschedHTML}</td>
+                <td style="color:#374151;">${v.purpose||'—'}</td>
+                <td>${empNameDisplay}</td>
+                <td>${docBtn}</td>
+                <td><button onclick="initReschedule(${index})" class="btn-amber-sm">Reschedule</button></td>`;
+            tbody.appendChild(row);
+        });
+    } catch(e) {
+        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-red-500" style="font-size:13px;">Failed to load. Check API.</td></tr>`;
+    }
+}
+
+// ══════════════════════════════════════════════════════════
+//  AADHAAR PREVIEW
+// ══════════════════════════════════════════════════════════
+function viewAadhaarSession(visitor_id) {
+    const file = aadhaarStore[visitor_id];
+    if (!file) return;
+    const area = document.getElementById("aadhaarPreviewArea");
+    if (file.type === 'application/pdf') {
+        area.innerHTML = `<iframe src="${file.dataUrl}" class="w-full" style="height:500px;border:none;border-radius:10px;"></iframe>`;
+    } else {
+        area.innerHTML = `<img src="${file.dataUrl}" alt="Aadhaar" class="max-w-full max-h-[500px] rounded-xl object-contain">`;
+    }
+    document.getElementById("aadhaarModal").classList.remove("hidden");
+}
+
+async function viewAadhaarS3(visitor_id) {
+    const area = document.getElementById("aadhaarPreviewArea");
+    area.innerHTML = `<p style="color:#9ca3af;font-size:13px;">Loading document…</p>`;
+    document.getElementById("aadhaarModal").classList.remove("hidden");
+    try {
+        const data = await apiCall(`/aadhaar?visitor_id=${visitor_id}`);
+        const url  = data.presigned_url;
+        const ext  = url.split('?')[0].split('.').pop().toLowerCase();
+        if (ext === 'pdf') {
+            area.innerHTML = `<iframe src="${url}" class="w-full" style="height:500px;border:none;border-radius:10px;"></iframe>`;
+        } else {
+            area.innerHTML = `<img src="${url}" alt="Aadhaar" class="max-w-full max-h-[500px] rounded-xl object-contain">`;
+        }
+    } catch(e) { area.innerHTML = `<p style="color:#dc2626;padding:16px;font-size:13px;">Failed to load: ${e.message}</p>`; }
+}
+
+function closeAadhaarModal() {
+    document.getElementById("aadhaarModal").classList.add("hidden");
+    document.getElementById("aadhaarPreviewArea").innerHTML = "";
+}
+
+// ══════════════════════════════════════════════════════════
+//  RESCHEDULE
+// ══════════════════════════════════════════════════════════
+async function performReschedule() {
+    const v = myVisitorsData[currentRescheduleIndex];
+    if (!v) return;
+    const newDate    = document.getElementById("modalDate").value;
+    const newTime    = document.getElementById("modalTime").value;
+    const newPurpose = document.getElementById("modalPurpose").value.trim();
+    if (!newDate || !newTime) return alert("Date and Time are required");
+    try {
+        // Step 1: Reschedule date/time update
+        await apiCall('/register', { method: 'PUT', body: JSON.stringify({ visitor_id: v.visitor_id, newDate, newTime, newPurpose: newPurpose || v.purpose }) });
+        // Step 2: Update status to 'rescheduled' so admin sees it clearly
+        await apiCall('/approve', { method: 'POST', body: JSON.stringify({ visitor_id: v.visitor_id, status: 'rescheduled' }) });
+        const visitorEmail = v.email && v.email !== "N/A" ? v.email : null;
+        if (visitorEmail) {
+            await sendVisitorMail({ to_email: visitorEmail, visitor_name: v.name, visitor_id: v.visitor_id, visit_date: newDate, visit_time: newTime, purpose: newPurpose || v.purpose, emp_name: currentEmployee, mail_type: "Visit Rescheduled", templateId: EMAILJS_RESCHEDULE_TEMPLATE_ID });
+            showMessage("Rescheduled successfully! Email sent to visitor.", "text-green-600");
+        } else {
+            showMessage("Rescheduled successfully! (No visitor email on record)", "text-amber-600");
+        }
+        closeRescheduleModal();
+        refreshMyVisitors();
+    } catch(e) { console.error(e); showMessage("Reschedule failed: " + e.message, "text-red-600"); }
+}
+
+function initReschedule(index) {
+    currentRescheduleIndex = index;
+    const v = myVisitorsData[index];
+    document.getElementById("modalVisitorName").innerHTML = `Visitor: <strong>${v.name||'Visitor'}</strong>`;
+    document.getElementById("modalDate").value    = v.rescheduled_date || (v.date?v.date.split('T')[0]:'');
+    document.getElementById("modalTime").value    = v.rescheduled_time || v.time || '';
+    document.getElementById("modalPurpose").value = v.purpose || '';
+    document.getElementById("rescheduleModal").classList.remove("hidden");
+}
+
+function closeRescheduleModal() { document.getElementById("rescheduleModal").classList.add("hidden"); }
+
+// ══════════════════════════════════════════════════════════
+//  UTILITIES
+// ══════════════════════════════════════════════════════════
+function showMessage(text, color) {
+    const msg = document.getElementById("msg");
+    msg.innerHTML = text; msg.className = `text-center text-sm font-medium ${color}`;
+    setTimeout(() => msg.innerHTML = "", 8000);
+}
+
+function onlyLetters(e) {
+    if (!/^[a-zA-Z\s]$/.test(String.fromCharCode(e.which||e.keyCode))) e.preventDefault();
+}
+
+function formatAadhaar(input) {
+    let v = input.value.replace(/\s+/g,'').replace(/[^0-9]/g,'');
+    if (v.length > 12) v = v.slice(0, 12);
+    let f = '';
+    for (let i = 0; i < v.length; i++) { if (i > 0 && i % 4 === 0) f += ' '; f += v[i]; }
+    input.value = f;
+}
+
+function toggleProfileDropdown() { document.getElementById("profileDropdown").classList.toggle("hidden"); }
+function logout() { location.reload(); }
+
+// ══════════════════════════════════════════════════════════
+//  DATE / TIME RESTRICTIONS
+// ══════════════════════════════════════════════════════════
+function onDateChange() {
+    const dateInput = document.getElementById("date");
+    const timeInput = document.getElementById("time");
+    const timeWrap  = document.getElementById("timeFieldWrap");
+    const today     = new Date().toISOString().split('T')[0];
+    // Show time field now that a date is selected
+    if (dateInput.value) {
+        timeWrap.style.display = '';
+    } else {
+        timeWrap.style.display = 'none';
+        timeInput.value = '';
+    }
+    if (dateInput.value === today) {
+        const now = new Date();
+        const hh  = String(now.getHours()).padStart(2,'0');
+        const mm  = String(now.getMinutes()).padStart(2,'0');
+        timeInput.min = `${hh}:${mm}`;
+        if (timeInput.value && timeInput.value < `${hh}:${mm}`) { timeInput.value = ''; showMessage("Please select a future time for today.", "text-amber-600"); }
+    } else { timeInput.min = ''; }
+}
+
+function onTimeChange() {
+    const dateInput = document.getElementById("date");
+    const timeInput = document.getElementById("time");
+    const today     = new Date().toISOString().split('T')[0];
+    if (dateInput.value === today) {
+        const now = new Date();
+        const cur = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        if (timeInput.value < cur) { timeInput.value = ''; showMessage("Cannot select past time. Choose a future time.", "text-red-600"); }
+    }
+}
+
+function validateAadhaarInline(input) {
+    const digits = input.value.replace(/\s+/g,'');
+    const err = document.getElementById("aadhaarError");
+    if (digits.length > 0 && digits.length < 12) { err.style.display=''; } else { err.style.display='none'; }
+}
+
+function validateEmailInline(input) {
+    const val = input.value.trim();
+    const err = document.getElementById("emailError");
+    if (val.length > 0 && !val.toLowerCase().endsWith('@gmail.com')) { err.style.display=''; } else { err.style.display='none'; }
+}
+
+window.onload = () => {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("date").min      = today;
+    document.getElementById("modalDate").min = today;
+    document.getElementById("date").addEventListener("change", onDateChange);
+    document.getElementById("time").addEventListener("change", onTimeChange);
+    // Live search auto-filter
+    document.getElementById("empSearch").addEventListener("input", refreshMyVisitors);
+    document.getElementById("empSingleDate").addEventListener("change", refreshMyVisitors);
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.relative')) document.getElementById("profileDropdown").classList.add("hidden");
+    });
+};
+</script>
+</body>
+</html>
