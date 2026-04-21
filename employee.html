@@ -68,6 +68,17 @@
 </head>
 <body>
 
+<!-- Login Error Overlay -->
+<div id="loginErrorOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;background:rgba(90,90,90,0.5);">
+    <div style="background:#22263a;color:white;border-radius:12px;padding:26px 32px 22px 26px;width:480px;max-width:92vw;position:absolute;top:10px;left:50%;transform:translateX(-50%);box-shadow:0 2px 16px rgba(0,0,0,0.3);">
+        <p id="loginErrorTitle" style="font-size:15px;font-weight:600;margin:0 0 6px 0;line-height:1.5;">Incorrect credentials</p>
+        <p id="loginErrorText" style="font-size:13.5px;font-weight:400;margin:0 0 22px 0;color:#c8cdd8;line-height:1.6;">Please check your name and Employee ID.</p>
+        <div style="text-align:right;">
+            <button onclick="closeLoginError()" style="background:#dde3f0;color:#1e2330;border:none;padding:9px 34px;border-radius:50px;font-size:13.5px;font-weight:600;cursor:pointer;">OK</button>
+        </div>
+    </div>
+</div>
+
 <!-- Login Screen -->
 <div id="loginScreen" class="login-wrap fixed inset-0 z-50">
     <div class="login-card mx-4">
@@ -359,8 +370,12 @@ async function generateVisitorId() {
 async function performLogin() {
     const empIdInput   = document.getElementById('loginEmpId').value.trim();
     const nameInput    = document.getElementById('loginName').value.trim().toLowerCase();
-    if (!empIdInput)  return alert("Please enter Employee ID");
-    if (!nameInput)   return alert("Please enter your Full Name");
+    const showLoginError = (msg) => {
+        document.getElementById('loginErrorText').textContent = msg;
+        document.getElementById('loginErrorOverlay').style.display = 'block';
+    };
+    if (!empIdInput)  return showLoginError("Please enter Employee ID");
+    if (!nameInput)   return showLoginError("Please enter your Full Name");
     try {
         const data      = await apiCall('/user');
         const employees = Array.isArray(data) ? data : (data.Items || []);
@@ -382,9 +397,9 @@ async function performLogin() {
             refreshMyVisitors();
             showMessage("Login successful!", "text-green-600");
         } else {
-            alert("Access denied. Employee ID and Name do not match any record. Please check both fields.");
+            showLoginError("Incorrect credentials. Please check your name and Employee ID.");
         }
-    } catch(e) { alert("Cannot connect to server. Check CORS & API deployment."); }
+    } catch(e) { showLoginError("Cannot connect to server. Please try again."); }
 }
 
 // ══════════════════════════════════════════════════════════
@@ -623,6 +638,7 @@ function formatAadhaar(input) {
     input.value = f;
 }
 
+function closeLoginError() { document.getElementById('loginErrorOverlay').style.display = 'none'; }
 function toggleProfileDropdown() { document.getElementById("profileDropdown").classList.toggle("hidden"); }
 function logout() { location.reload(); }
 
