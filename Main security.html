@@ -285,7 +285,7 @@
                 <div style="font-size:11px;color:#a8bad6;margin-top:6px;" id="todayDateLabel"></div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card" style="cursor:pointer;" onclick="filterTableByStatus('pending')" onmouseover="this.style.background='#fffbf0'" onmouseout="this.style.background='white'">
                 <div class="stat-label">Pending</div>
                 <div class="stat-value" style="color:#d97706;" id="pendingCount">0</div>
             </div>
@@ -371,7 +371,7 @@
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="renderTable()" class="btn-primary">Apply Filter</button>
+                        <button onclick="applyFilters()" class="btn-primary">Apply Filter</button>
                         <button onclick="clearFilter()" class="btn-secondary">Clear</button>
                         <button onclick="refreshDashboard()" class="btn-secondary flex items-center gap-1.5">
                             <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
@@ -1013,8 +1013,14 @@ function applyFilters() {
     const endISO   = calEndDate   ? toISO(calEndDate)   : null;
     filteredVisitors = visitors.filter(v => {
         const matchesSearch = !searchTerm ||
-            (v.name   && v.name.toLowerCase().includes(searchTerm)) ||
-            (v.aadhaar && v.aadhaar.includes(searchTerm));
+            (v.name       && v.name.toLowerCase().includes(searchTerm)) ||
+            (v.aadhaar    && v.aadhaar.toLowerCase().includes(searchTerm)) ||
+            (v.email      && v.email.toLowerCase().includes(searchTerm)) ||
+            (v.purpose    && v.purpose.toLowerCase().includes(searchTerm)) ||
+            (v.visitor_id && v.visitor_id.toLowerCase().includes(searchTerm)) ||
+            (v.emp_name   && v.emp_name.toLowerCase().includes(searchTerm)) ||
+            (v.status     && v.status.toLowerCase().includes(searchTerm)) ||
+            (v.date       && v.date.split("T")[0].includes(searchTerm));
         const matchesEmp = !empFilter || (v.emp_name || '').trim() === empFilter;
         let matchesDate = true;
         if (startISO && endISO) {
@@ -1079,6 +1085,12 @@ function renderPage() {
             ? `<span style="color:#b45309;font-weight:500;">${v.rescheduled_date}${v.rescheduled_time ? ' ' + v.rescheduled_time : ''}</span>`
             : `<span class="text-gray-300">—</span>`;
         const row = document.createElement("tr");
+        // Row background color based on status
+        const rowBg = v.status === 'approved' ? '#f0fdf4' : v.status === 'rejected' ? '#fff5f5' : v.status === 'pending' ? '#fffbeb' : '';
+        if (rowBg) row.style.background = rowBg;
+        const hoverBg = v.status === 'approved' ? '#e6faf0' : v.status === 'rejected' ? '#ffeaea' : v.status === 'pending' ? '#fff5d6' : '#f7f9fc';
+        row.onmouseover = () => row.style.background = hoverBg;
+        row.onmouseout  = () => row.style.background = rowBg || '';
         row.innerHTML = `
             <td style="padding:12px;color:#9ca3af;">${sno}</td>
             <td style="padding:12px;font-weight:600;color:#1a1d23;font-family:monospace;font-size:12px;">${v.visitor_id}</td>
@@ -1173,8 +1185,8 @@ function refreshDashboard() { renderTable(); }
 
 function filterTableByStatus(status) {
     document.querySelector('.px-6.pt-4.pb-4')?.scrollIntoView({ behavior: 'smooth' });
-    const todayISO = getTodayISO();
-    filteredVisitors = visitors.filter(v => v.status === status && getVisitorDateISO(v) === todayISO);
+    // Show ALL visitors with this status (not just today)
+    filteredVisitors = visitors.filter(v => v.status === status);
     currentPage = 1;
     renderPage();
     updateCounts(visitors);

@@ -504,6 +504,13 @@ emailjs.init('igCWPsq9KtiQm0xxt');
 const API_BASE = "https://4ropzko5m1.execute-api.ap-south-1.amazonaws.com";
 let visitors = [], filtered = [];
 let selectedRows = new Set();
+
+// Effective status: treat pending+rescheduled_date as 'rescheduled'
+function getStatus(v){
+    if(v.status === 'rescheduled') return 'rescheduled';
+    if(v.status === 'pending' && v.rescheduled_date) return 'rescheduled';
+    return v.status || 'pending';
+}
 let currentPage = 1;
 const PAGE_SIZE = 7;
 
@@ -742,11 +749,11 @@ function applyFilters(){
             (v.company&&v.company.toLowerCase().includes(search))||
             (v.organization&&v.organization.toLowerCase().includes(search))||
             (v.phone&&v.phone.includes(search))||
-            (v.status&&v.status.toLowerCase().includes(search))||
+            (getStatus(v).toLowerCase().includes(search))||
             (v.date&&v.date.split('T')[0].includes(search))
         );
         const mEmp=!empSearch||(v.emp_name&&v.emp_name===empSearch);
-        const mStatus=!statusVal||v.status===statusVal;
+        const mStatus=!statusVal||getStatus(v)===statusVal;
         let mDate=true;
         if(startISO&&endISO){const vd=v.date?v.date.split('T')[0]:'';mDate=vd>=startISO&&vd<=endISO;}
         else if(startISO)mDate=v.date&&v.date.split('T')[0]===startISO;
@@ -777,21 +784,22 @@ function renderPage(){
     pageData.forEach((v,idx)=>{
         const globalIdx=start+idx;
         const overstay=isOverstay(v);
-        const rowClass=overstay?'row-overstay':v.status==='pending'?'row-pending':v.status==='approved'?'row-approved':v.status==='rescheduled'?'row-rescheduled':'row-rejected';
-        const statusHTML=v.status==='pending'
+        const effStatus=getStatus(v);
+        const rowClass=overstay?'row-overstay':effStatus==='pending'?'row-pending':effStatus==='approved'?'row-approved':effStatus==='rescheduled'?'row-rescheduled':'row-rejected';
+        const statusHTML=effStatus==='pending'
             ?`<span class="status-pending">⏳ Pending</span>`
-            :v.status==='approved'
+            :effStatus==='approved'
             ?`<span class="status-approved">✅ Approved</span>`
-            :v.status==='rescheduled'
+            :effStatus==='rescheduled'
             ?`<span class="status-rescheduled">📅 Rescheduled</span>`
             :`<span class="status-rejected">❌ Rejected</span>`;
         let action='<span style="color:#d1d5db;font-size:12px;">—</span>';
-        if(v.status==='pending'||v.status==='rescheduled'){
+        if(effStatus==='pending'||effStatus==='rescheduled'){
             action=`<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
-                <button onclick="rejectVisitorDirect('${v.visitor_id}','${v.email||''}')" class="btn-reject">Reject</button>
+                <button onclick="rejectVisitorDirect('${v.visitor_id}','${v.email||''}')" class="btn-reject">❌ Reject</button>
                 <button onclick="openRescheduleModal('${v.visitor_id}','${v.date||''}','${v.purpose||''}','${(v.email||'').replace(/'/g,"\\'")}','${(v.name||'').replace(/'/g,"\\'")}','${(v.emp_name||'').replace(/'/g,"\\'")}')\" style="background:linear-gradient(135deg,#7c3aed,#9333ea);color:white;padding:5px 14px;border-radius:10px;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">📅 Reschedule</button>
             </div>`;
-        }else if(v.status==='approved'&&!v.out_time){
+        }else if(effStatus==='approved'&&!v.out_time){
             action=`<button onclick="exitVisitor('${v.visitor_id}')" class="btn-exit">Mark Exit</button>`;
         }
         const avatarBg=getAvatarColor(v.name);
@@ -894,7 +902,20 @@ function clearFilter(){
 
 // ── ACTIONS ───────────────────────────────────────────────
 async function allowVisitorDirect(id){
-    try{await fetch(`${API_BASE}/approve`,{method:'POST',mode:'cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({visitor_id:id,status:'approved',in_time:new Date().toISOString()})});}catch(e){}
+    // Optimistically update local data so UI responds instantly
+    const v = visitors.find(x => x.visitor_id === id);
+    if(v){ v.status = 'approved'; v.in_time = new Date().toISOString(); }
+    applyFilters();
+    try{
+        const res = await fetch(`${API_BASE}/approve`,{method:'POST',mode:'cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({visitor_id:id,status:'approved',in_time:new Date().toISOString()})});
+        if(res.ok){
+            showToast('success','\u2705 Approved',`Visitor ${id} approved successfully.`);
+        } else {
+            showToast('error','\u274c Approve Failed',`Server returned ${res.status}. Please refresh.`);
+        }
+    }catch(e){
+        showToast('error','\u274c Network Error',e.message);
+    }
     renderTable();
 }
 let _rejectVisitorEmail='';
@@ -932,6 +953,11 @@ async function submitReject(){
     }
     btn.innerHTML='✉️ Reject &amp; Send Email';
     btn.disabled=false;
+    // Optimistically update local data
+    const v = visitors.find(x => x.visitor_id === visitorId);
+    if(v){ v.status = 'rejected'; }
+    applyFilters();
+    showToast('success','❌ Rejected',`Visitor ${visitorId} rejected.${_rejectVisitorEmail?' Email sent.':''}`);
     closeRejectModal();
     renderTable();
 }
@@ -1205,6 +1231,10 @@ async function submitReschedule(){
         });
         const data = await res.json().catch(()=>({}));
         if(res.ok){
+            // Optimistically update local data
+            const vr = visitors.find(x => x.visitor_id === visitorId);
+            if(vr){ vr.status = 'rescheduled'; vr.rescheduled_date = newDate + 'T' + newTime + ':00'; if(newPurpose) vr.purpose = newPurpose; }
+            applyFilters();
             // Send reschedule email with correct template variable names
             if(_rsEmail){
                 try{
