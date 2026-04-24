@@ -130,7 +130,7 @@
                 <label class="login-label">Admin Id</label>
                 <input id="loginEmpId" class="login-input" onkeydown="if(event.key==='Enter')performLogin()">
             </div>
-            <button id="loginBtn" onclick="performLogin()" class="brand-gradient w-full text-white font-bold py-4 rounded-2xl text-base shadow-xl hover:opacity-90 transition-opacity" style="margin-top:4px;">
+            <button id="loginBtn" onclick="performLogin()" class="brand-gradient w-full text-white font-bold py-4 rounded-2xl text-base shadow-xl hover:opacity-90 transition-opacity" style="margin-top:20px;">
                 🔐 Login to Admin Portal
             </button>
         </div>
@@ -185,77 +185,96 @@
         </div>
     </nav>
 
-    <!-- SUMMARY CARDS -->
+    <!-- SUMMARY CARDS — 6 cards in one row, default = today -->
     <div class="px-6 pt-5">
-        <div class="grid grid-cols-5 gap-4">
-            <div class="summary-card card-total p-5 shadow-lg">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-xs font-bold text-white/75 uppercase tracking-wider">Monthly Visitors</p>
-                    <span class="text-xl">📆</span>
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;">
+
+            <!-- Today -->
+            <div class="summary-card card-today p-4 shadow-lg">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                    <p class="text-xs font-bold text-white/75 uppercase tracking-wider">Today</p>
+                    <span>📅</span>
                 </div>
-                <p class="text-4xl font-extrabold text-white" id="totalCount">0</p>
-                <p class="text-xs text-white/55 mt-1" id="monthlyLabel">This month</p>
-            </div>
-            <div class="summary-card card-today p-5 shadow-lg">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-xs font-bold text-white/75 uppercase tracking-wider">Today's Visitors</p>
-                    <span class="text-xl">📅</span>
-                </div>
-                <p class="text-4xl font-extrabold text-white" id="todayCount">0</p>
-                <p class="text-xs text-white/55 mt-1">Since midnight</p>
-            </div>
-            <div class="summary-card card-pending p-5 shadow-lg">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-xs font-bold text-amber-900/70 uppercase tracking-wider">Pending</p>
-                    <span class="text-xl">⏳</span>
-                </div>
-                <p class="text-4xl font-extrabold text-amber-900" id="pendingCount">0</p>
-                <p class="text-xs text-amber-800/55 mt-1">Awaiting action</p>
-            </div>
-            <div class="summary-card card-allowed p-5 shadow-lg">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-xs font-bold text-emerald-900/70 uppercase tracking-wider">Allowed In</p>
-                    <span class="text-xl">✅</span>
-                </div>
-                <p class="text-4xl font-extrabold text-emerald-900" id="allowedCount">0</p>
-                <p class="text-xs text-emerald-900/55 mt-1">Approved visitors</p>
+                <p class="text-3xl font-extrabold text-white" id="todayCount">0</p>
+                <p class="text-xs text-white/55 mt-1" id="todayLabel">Today</p>
             </div>
 
-            <!-- Day-wise Visitors trigger card -->
-            <div class="summary-card p-5 shadow-lg" id="daywiseTriggerCard"
-                 style="background:linear-gradient(135deg,#e8f0fb,#dce6f7);border:1.5px solid #b3c8ea;cursor:pointer;border-radius:20px;"
+            <!-- Pending -->
+            <div class="summary-card card-pending p-4 shadow-lg">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                    <p class="text-xs font-bold text-amber-900/70 uppercase tracking-wider">Pending</p>
+                    <span>⏳</span>
+                </div>
+                <p class="text-3xl font-extrabold text-amber-900" id="pendingCount">0</p>
+                <p class="text-xs text-amber-800/55 mt-1">Awaiting action</p>
+            </div>
+
+            <!-- Approved -->
+            <div class="summary-card card-allowed p-4 shadow-lg">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                    <p class="text-xs font-bold text-emerald-900/70 uppercase tracking-wider">Approved</p>
+                    <span>✅</span>
+                </div>
+                <p class="text-3xl font-extrabold text-emerald-900" id="allowedCount">0</p>
+                <p class="text-xs text-emerald-900/55 mt-1">Allowed in</p>
+            </div>
+
+            <!-- Rejected -->
+            <div class="summary-card p-4 shadow-lg" style="background:linear-gradient(135deg,#fee2e2,#fecaca);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                    <p class="text-xs font-bold uppercase tracking-wider" style="color:#991b1b;">Rejected</p>
+                    <span>❌</span>
+                </div>
+                <p class="text-3xl font-extrabold" style="color:#991b1b;" id="rejectedCount">0</p>
+                <p class="text-xs mt-1" style="color:#b91c1c99;">Declined visits</p>
+            </div>
+
+            <!-- Rescheduled -->
+            <div class="summary-card p-4 shadow-lg" style="background:linear-gradient(135deg,#ede9fe,#ddd6fe);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                    <p class="text-xs font-bold uppercase tracking-wider" style="color:#5b21b6;">Rescheduled</p>
+                    <span>📅</span>
+                </div>
+                <p class="text-3xl font-extrabold" style="color:#5b21b6;" id="rescheduledCount">0</p>
+                <p class="text-xs mt-1" style="color:#6d28d999;">Visit moved</p>
+            </div>
+
+            <!-- Day-wise (clickable) -->
+            <div class="summary-card p-4 shadow-lg" id="daywiseTriggerCard"
+                 style="background:linear-gradient(135deg,#e8f0fb,#dce6f7);border:1.5px solid #b3c8ea;cursor:pointer;"
                  onclick="toggleDaywisePopup(event)"
                  onmouseover="this.style.background='linear-gradient(135deg,#dce6f7,#c8d8f0)'"
                  onmouseout="this.style.background='linear-gradient(135deg,#e8f0fb,#dce6f7)'">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-xs font-bold uppercase tracking-wider" style="color:#2c3e5d;">Day-wise Visitors</p>
-                    <svg width="14" height="14" fill="none" stroke="#4a6fa5" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                    <p class="text-xs font-bold uppercase tracking-wider" style="color:#2c3e5d;">Day-wise</p>
+                    <svg width="13" height="13" fill="none" stroke="#4a6fa5" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
                 </div>
-                <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                    <svg width="26" height="26" fill="none" stroke="#2c3e5d" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-                    <span style="font-size:15px;font-weight:700;color:#1e2a3a;">This Week</span>
+                <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+                    <svg width="22" height="22" fill="none" stroke="#2c3e5d" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                    <span style="font-size:13px;font-weight:700;color:#1e2a3a;">This Week</span>
                 </div>
             </div>
 
-            <!-- Day-wise Popup Overlay -->
-            <div id="daywiseOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.40);z-index:199;align-items:center;justify-content:center;" onclick="closeDaywisePopup()">
-                <div id="daywisePopup" style="background:white;border-radius:16px;width:500px;max-width:calc(100vw - 32px);max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(30,42,58,0.22);border:1px solid #e2e6ed;" onclick="event.stopPropagation()">
-                    <div style="padding:20px 20px 16px;border-bottom:1px solid #f0f2f5;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:white;z-index:10;border-radius:16px 16px 0 0;">
-                        <div>
-                            <div style="font-size:12px;font-weight:600;color:#8a97a8;text-transform:uppercase;letter-spacing:0.06em;">This Week</div>
-                            <div style="font-size:16px;font-weight:700;color:#1e2330;margin-top:2px;">Day-wise Visitors</div>
-                        </div>
-                        <button onclick="closeDaywisePopup()" style="width:32px;height:32px;border:1px solid #e2e6ed;border-radius:8px;background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:#6b7280;" onmouseover="this.style.background='#f4f6fa'" onmouseout="this.style.background='white'">×</button>
-                    </div>
-                    <div style="padding:20px;">
-                        <div id="daywisePopupContent"></div>
-                    </div>
+        </div>
+    </div>
+
+    <!-- Day-wise Popup Overlay (outside grid, no overlap issue) -->
+    <div id="daywiseOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.40);z-index:199;align-items:center;justify-content:center;" onclick="closeDaywisePopup()">
+        <div id="daywisePopup" style="background:white;border-radius:16px;width:500px;max-width:calc(100vw - 32px);max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(30,42,58,0.22);border:1px solid #e2e6ed;" onclick="event.stopPropagation()">
+            <div style="padding:20px 20px 16px;border-bottom:1px solid #f0f2f5;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:white;z-index:10;border-radius:16px 16px 0 0;">
+                <div>
+                    <div style="font-size:12px;font-weight:600;color:#8a97a8;text-transform:uppercase;letter-spacing:0.06em;">This Week</div>
+                    <div style="font-size:16px;font-weight:700;color:#1e2330;margin-top:2px;">Day-wise Visitors</div>
                 </div>
+                <button onclick="closeDaywisePopup()" style="width:32px;height:32px;border:1px solid #e2e6ed;border-radius:8px;background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:#6b7280;" onmouseover="this.style.background='#f4f6fa'" onmouseout="this.style.background='white'">×</button>
+            </div>
+            <div style="padding:20px;">
+                <div id="daywisePopupContent"></div>
             </div>
         </div>
     </div>
 
-    <!-- FILTER BAR -->
+        <!-- FILTER BAR -->
     <div class="filter-bar px-6 pt-4 pb-4 mt-4 shadow-sm">
         <div class="flex items-end gap-3 flex-wrap">
             <div class="flex-1 min-w-[180px]">
@@ -338,6 +357,7 @@
                         <th class="p-4 text-left text-xs font-bold tracking-wider" style="color:#b8d0d8;">Visitor ID</th>
                         <th class="p-4 text-left text-xs font-bold tracking-wider" style="color:#b8d0d8;">Visitor Name</th>
                         <th class="p-4 text-left text-xs font-bold tracking-wider" style="color:#b8d0d8;">Email ID</th>
+                        <th class="p-4 text-left text-xs font-bold tracking-wider" style="color:#b8d0d8;">Mobile</th>
                         <th class="p-4 text-left text-xs font-bold tracking-wider" style="color:#b8d0d8;">Aadhaar</th>
                         <th class="p-4 text-left text-xs font-bold tracking-wider" style="color:#b8d0d8;">Entry Date</th>
                         <th class="p-4 text-left text-xs font-bold tracking-wider" style="color:#b8d0d8;">Reschedule Date</th>
@@ -419,6 +439,7 @@
                     <option value="">Select Role</option>
                     <option value="employee">Employee</option>
                     <option value="security">Security</option>
+                    <option value="admin">🔑 Admin</option>
                 </select>
             </div>
             <button onclick="registerUser()" class="w-full text-white font-bold py-3 rounded-xl shadow-md transition-opacity hover:opacity-90" style="background:linear-gradient(135deg,#2d6a4f,#40916c);">
@@ -662,7 +683,7 @@ async function viewAadhaar(visitor_id){
         if(res.ok&&data.presigned_url){
             const area=document.getElementById('aadhaarPreviewArea');
             if(data.presigned_url.toLowerCase().includes('.pdf')){
-                area.innerHTML=`<iframe src="${data.presigned_url}" style="width:100%;height:380px;border:none;border-radius:12px;"></iframe>`;
+                area.innerHTML=`<div style="width:100%;height:380px;overflow-y:auto;overflow-x:hidden;border-radius:10px;"><object data="${data.presigned_url}#toolbar=0&navpanes=0&scrollbar=1" type="application/pdf" style="width:100%;min-height:380px;border:none;"><embed src="${data.presigned_url}#toolbar=0&navpanes=0" type="application/pdf" style="width:100%;min-height:380px;border:none;"/></object></div>`;
             }else{
                 area.innerHTML=`<img src="${data.presigned_url}" alt="Aadhaar" style="max-width:100%;max-height:380px;border-radius:12px;object-fit:contain;">`;
             }
@@ -690,17 +711,17 @@ async function renderTable(){
     document.getElementById('calPopup').classList.remove('show');
     document.getElementById('calTrigger').classList.remove('active');
     const tbody=document.getElementById('tableBody');
-    tbody.innerHTML=`<tr><td colspan="15" class="p-12 text-center"><div style="display:flex;flex-direction:column;align-items:center;gap:12px;"><div class="spinner"></div><p style="color:#9ca3af;font-size:13px;">Loading visitors...</p></div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="16" class="p-12 text-center"><div style="display:flex;flex-direction:column;align-items:center;gap:12px;"><div class="spinner"></div><p style="color:#9ca3af;font-size:13px;">Loading visitors...</p></div></td></tr>`;
     try{
         const res=await fetch(`${API_BASE}/visitors`,{mode:'cors'});
         if(!res.ok)throw new Error(`HTTP ${res.status}: ${res.statusText}`);
         const data=await res.json();
         visitors=Array.isArray(data)?data:(data.Items||[]);
         if(visitors.length===0){
-            tbody.innerHTML=`<tr><td colspan="15" class="p-12 text-center text-gray-400 text-sm">No visitors in database yet.</td></tr>`;
+            tbody.innerHTML=`<tr><td colspan="16" class="p-12 text-center text-gray-400 text-sm">No visitors in database yet.</td></tr>`;
         }
     }catch(e){
-        tbody.innerHTML=`<tr><td colspan="15" class="p-10 text-center"><p class="font-semibold" style="color:#ef4444;">❌ Failed to load: ${e.message}</p><p class="text-xs mt-1" style="color:#9ca3af;">Check console &amp; API Gateway CORS settings</p></td></tr>`;
+        tbody.innerHTML=`<tr><td colspan="16" class="p-10 text-center"><p class="font-semibold" style="color:#ef4444;">❌ Failed to load: ${e.message}</p><p class="text-xs mt-1" style="color:#9ca3af;">Check console &amp; API Gateway CORS settings</p></td></tr>`;
         return;
     }
     applyFilters();
@@ -730,40 +751,48 @@ async function populateEmployeeDropdown() {
     } catch(e) { console.warn('Could not load employees for dropdown:', e); }
 }
 
-// ── FILTERS — search across ALL fields ───────────────────
+// ── FILTERS: All filters → CARDS + TABLE ──
 function applyFilters(){
-    const search=(document.getElementById('searchInput')||{}).value?.toLowerCase().trim()||'';
-    const empSearch=(document.getElementById('employeeFilter')||{}).value?.trim()||'';
-    const statusVal=(document.getElementById('statusFilter')||{}).value||'';
-    const startISO=calStartDate?toISO(calStartDate):null;
-    const endISO=calEndDate?toISO(calEndDate):null;
+    const search    = (document.getElementById('searchInput')||{}).value?.toLowerCase().trim()||'';
+    const empSearch = (document.getElementById('employeeFilter')||{}).value?.trim()||'';
+    const statusVal = (document.getElementById('statusFilter')||{}).value||'';
+    const startISO  = calStartDate ? toISO(calStartDate) : null;
+    const endISO    = calEndDate   ? toISO(calEndDate)   : null;
 
-    filtered=visitors.filter(v=>{
-        // Search across visitor text fields (excluding emp_name — handled separately)
-        const mSearch=!search||(
+    // Date-range filtered set
+    const dateFiltered = visitors.filter(v => {
+        if(!startISO) return true;
+        const vd = v.date ? v.date.split('T')[0] : '';
+        if(startISO && endISO) return vd >= startISO && vd <= endISO;
+        return vd === startISO;
+    });
+
+    // Date + emp + status → drives CARDS
+    const cardFiltered = dateFiltered.filter(v => {
+        const mEmp    = !empSearch||(v.emp_name&&v.emp_name===empSearch);
+        const mStatus = !statusVal||getStatus(v)===statusVal;
+        return mEmp && mStatus;
+    });
+    updateCounts(cardFiltered);   // cards reflect all active filters
+
+    // cardFiltered + search → TABLE
+    filtered = cardFiltered.filter(v => {
+        const mSearch = !search||(
             (v.name&&v.name.toLowerCase().includes(search))||
             (v.email&&v.email.toLowerCase().includes(search))||
             (v.aadhaar&&v.aadhaar.includes(search))||
+            (v.mobile&&v.mobile.includes(search))||
             (v.purpose&&v.purpose.toLowerCase().includes(search))||
             (v.visitor_id&&v.visitor_id.toLowerCase().includes(search))||
-            (v.company&&v.company.toLowerCase().includes(search))||
-            (v.organization&&v.organization.toLowerCase().includes(search))||
-            (v.phone&&v.phone.includes(search))||
+            (v.emp_name&&v.emp_name.toLowerCase().includes(search))||
             (getStatus(v).toLowerCase().includes(search))||
             (v.date&&v.date.split('T')[0].includes(search))
         );
-        const mEmp=!empSearch||(v.emp_name&&v.emp_name===empSearch);
-        const mStatus=!statusVal||getStatus(v)===statusVal;
-        let mDate=true;
-        if(startISO&&endISO){const vd=v.date?v.date.split('T')[0]:'';mDate=vd>=startISO&&vd<=endISO;}
-        else if(startISO)mDate=v.date&&v.date.split('T')[0]===startISO;
-        return mSearch&&mEmp&&mStatus&&mDate;
+        return mSearch;
     });
 
-    currentPage=1;
+    currentPage = 1;
     renderPage();
-    updateCounts(filtered);
-    
 }
 function filterInMemory(){applyFilters();}
 
@@ -772,7 +801,7 @@ function renderPage(){
     tbody.innerHTML='';
 
     if(!filtered.length){
-        tbody.innerHTML=`<tr><td colspan="15" class="p-10 text-center text-gray-400 text-sm">No visitors found matching your filters.</td></tr>`;
+        tbody.innerHTML=`<tr><td colspan="16" class="p-10 text-center text-gray-400 text-sm">No visitors found matching your filters.</td></tr>`;
         renderPagination();return;
     }
 
@@ -820,6 +849,7 @@ function renderPage(){
                 </div>
             </td>
             <td class="p-4" style="color:#6b7280;font-size:12px;">${v.email||'-'}</td>
+            <td class="p-4" style="color:#374151;font-size:12px;font-family:monospace;">${v.mobile||'—'}</td>
             <td class="p-4">
                 <button onclick="viewAadhaar('${v.visitor_id}')" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);color:#1d4ed8;padding:5px 12px;border-radius:10px;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">👁️ View</button>
             </td>
@@ -827,8 +857,8 @@ function renderPage(){
             <td class="p-4" style="color:#7c3aed;font-weight:500;">${v.rescheduled_date ? v.rescheduled_date.split('T')[0] :'-'}</td>
             <td class="p-4" style="color:#4b5563;">${v.purpose||'-'}</td>
             <td class="p-4" style="font-weight:600;color:#1f2937;">${v.emp_name||'-'}</td>
-            <td class="p-4" style="color:#059669;font-weight:600;">${v.in_time?formatTime(v.in_time):'-'}</td>
-            <td class="p-4" style="color:#e11d48;font-weight:600;">${v.out_time?formatTime(v.out_time):'-'}</td>
+            <td class="p-4" style="color:#059669;font-weight:600;">${(effStatus==='rescheduled'||effStatus==='pending'||effStatus==='rejected')?'-':(v.in_time?formatTime(v.in_time):'-')}</td>
+            <td class="p-4" style="color:#e11d48;font-weight:600;">${(effStatus==='rescheduled'||effStatus==='pending'||effStatus==='rejected')?'-':(v.out_time?formatTime(v.out_time):'-')}</td>
             <td class="p-4">${statusHTML}</td>
             <td class="p-4" style="text-align:center;">${action}</td>`;
         tbody.appendChild(row);
@@ -879,18 +909,40 @@ function renderPagination(){
 }
 
 function updateCounts(list){
-    const d=list||visitors;
-    const now=new Date();
-    const todayISO=now.toISOString().split('T')[0];
-    const monthPrefix=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-    const MONTH_NAMES_CARD=['January','February','March','April','May','June','July','August','September','October','November','December'];
-    const monthlyCount=visitors.filter(v=>v.date&&v.date.startsWith(monthPrefix)).length;
-    document.getElementById('totalCount').innerText=monthlyCount;
-    const lbl=document.getElementById('monthlyLabel');
-    if(lbl) lbl.textContent=MONTH_NAMES_CARD[now.getMonth()]+' '+now.getFullYear();
-    document.getElementById('todayCount').innerText=d.filter(v=>v.date&&v.date.split('T')[0]===todayISO).length;
-    document.getElementById('pendingCount').innerText=d.filter(v=>v.status==='pending').length;
-    document.getElementById('allowedCount').innerText=d.filter(v=>v.status==='approved').length;
+    const now = new Date();
+    const todayISO = now.toISOString().split('T')[0];
+    const hasDateFilter = calStartDate !== null;
+    const hasStatusFilter = (document.getElementById('statusFilter')||{}).value||'';
+    const hasEmpFilter = (document.getElementById('employeeFilter')||{}).value?.trim()||'';
+
+    // If any filter is active, use passed list directly; else default to TODAY
+    let d;
+    if(hasDateFilter || hasStatusFilter || hasEmpFilter){
+        d = list || visitors;
+    } else {
+        // Default: show today's counts
+        d = visitors.filter(v => v.date && v.date.split('T')[0] === todayISO);
+    }
+
+    // Today card label
+    const todayLbl = document.getElementById('todayLabel');
+    if(todayLbl){
+        if(hasDateFilter && calStartDate){
+            const startStr = fmt(calStartDate);
+            const endStr   = calEndDate ? fmt(calEndDate) : '';
+            todayLbl.textContent = endStr && endStr !== startStr ? startStr+' – '+endStr : startStr;
+        } else {
+            todayLbl.textContent = 'Today';
+        }
+    }
+
+    document.getElementById('todayCount').innerText    = d.length;
+    document.getElementById('pendingCount').innerText  = d.filter(v=>getStatus(v)==='pending').length;
+    document.getElementById('allowedCount').innerText  = d.filter(v=>getStatus(v)==='approved').length;
+    const rejEl   = document.getElementById('rejectedCount');
+    const rescEl  = document.getElementById('rescheduledCount');
+    if(rejEl)  rejEl.innerText  = d.filter(v=>getStatus(v)==='rejected').length;
+    if(rescEl) rescEl.innerText = d.filter(v=>getStatus(v)==='rescheduled').length;
 }
 
 function clearFilter(){
@@ -905,7 +957,7 @@ async function allowVisitorDirect(id){
     // Optimistically update local data so UI responds instantly
     const v = visitors.find(x => x.visitor_id === id);
     if(v){ v.status = 'approved'; v.in_time = new Date().toISOString(); }
-    applyFilters();
+    applyFilters(); updateCounts(visitors);
     try{
         const res = await fetch(`${API_BASE}/approve`,{method:'POST',mode:'cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({visitor_id:id,status:'approved',in_time:new Date().toISOString()})});
         if(res.ok){
@@ -956,12 +1008,15 @@ async function submitReject(){
     // Optimistically update local data
     const v = visitors.find(x => x.visitor_id === visitorId);
     if(v){ v.status = 'rejected'; }
-    applyFilters();
+    applyFilters(); updateCounts(visitors);
     showToast('success','❌ Rejected',`Visitor ${visitorId} rejected.${_rejectVisitorEmail?' Email sent.':''}`);
     closeRejectModal();
     renderTable();
 }
 async function exitVisitor(id){
+    const ve=visitors.find(x=>x.visitor_id===id);
+    if(ve){ ve.out_time=new Date().toISOString(); }
+    applyFilters(); updateCounts(visitors);
     try{await fetch(`${API_BASE}/approve`,{method:'POST',mode:'cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({visitor_id:id,status:'approved',out_time:new Date().toISOString()})});}catch(e){}
     renderTable();
 }
@@ -1143,6 +1198,8 @@ async function loadUserList(){
             container.appendChild(section);
         }
 
+        const admins=users.filter(u=>(u.role||'').toLowerCase()==='admin');
+        renderRoleSection('Admins','🔑','#7c3aed','#f5f3ff','#c4b5fd',admins);
         renderRoleSection('Employees','👤','#1e5f74','#e8f4f8','#b2d8e4',employees);
         renderRoleSection('Security','🛡️','#856404','#fff3cd','#fcd34d',security);
 
@@ -1234,7 +1291,7 @@ async function submitReschedule(){
             // Optimistically update local data
             const vr = visitors.find(x => x.visitor_id === visitorId);
             if(vr){ vr.status = 'rescheduled'; vr.rescheduled_date = newDate + 'T' + newTime + ':00'; if(newPurpose) vr.purpose = newPurpose; }
-            applyFilters();
+            applyFilters(); updateCounts(visitors);
             // Send reschedule email with correct template variable names
             if(_rsEmail){
                 try{

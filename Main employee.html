@@ -179,7 +179,7 @@
 
         <!-- Content grid -->
         <div class="flex-1 overflow-auto p-6">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+            <div class="grid grid-cols-1 gap-6 h-full" style="grid-template-columns:2fr 3fr;">
 
                 <!-- Register Form -->
                 <div class="card p-6">
@@ -202,6 +202,11 @@
                             <input id="visitorEmail" type="email" class="field-input" placeholder="visitor@gmail.com" oninput="validateEmailInline(this)">
                             <p id="emailError" class="text-xs mt-1" style="color:#dc2626;display:none;">⚠ Email must end with @gmail.com</p>
                         </div>
+                        <div>
+                            <label class="field-label">Mobile Number <span class="text-red-400">(10 digits)</span></label>
+                            <input id="visitorMobile" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)" class="field-input" placeholder="9876543210">
+                            <p id="mobileError" class="text-xs mt-1" style="color:#dc2626;display:none;">⚠ Mobile number must be exactly 10 digits</p>
+                        </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="field-label">Date</label>
@@ -209,7 +214,24 @@
                             </div>
                             <div id="timeFieldWrap" style="display:none;">
                                 <label class="field-label">Time</label>
-                                <input id="time" type="time" class="field-input">
+                                <div style="display:flex;gap:4px;align-items:center;">
+                                    <select id="timeHH" onchange="syncTimeField()" class="field-input" style="padding:9px 6px;text-align:center;cursor:pointer;">
+                                        <option value="">HH</option>
+                                        <script>for(let h=1;h<=12;h++){const v=String(h).padStart(2,'0');document.write(`<option value="${v}">${v}</option>`)}</script>
+                                    </select>
+                                    <span style="font-weight:600;color:#6b7280;">:</span>
+                                    <select id="timeMM" onchange="syncTimeField()" class="field-input" style="padding:9px 6px;text-align:center;cursor:pointer;">
+                                        <option value="">MM</option>
+                                        <script>for(let m=0;m<60;m++){const v=String(m).padStart(2,'0');document.write(`<option value="${v}">${v}</option>`)}</script>
+                                    </select>
+                                    <select id="timeAMPM" onchange="syncTimeField()" class="field-input" style="padding:9px 6px;text-align:center;cursor:pointer;min-width:62px;">
+                                        <option value="">AM/PM</option>
+                                        <option value="AM">AM</option>
+                                        <option value="PM">PM</option>
+                                    </select>
+                                </div>
+                                <!-- hidden input keeps existing submitData() logic unchanged -->
+                                <input id="time" type="hidden">
                             </div>
                         </div>
                         <div>
@@ -250,7 +272,7 @@
                             <div style="position:relative;" id="empCalWrapper">
                                 <button id="empCalTrigger" onclick="toggleEmpCal(event)" style="display:flex;align-items:center;gap:7px;padding:7px 12px;border:1px solid #dde1e8;border-radius:8px;background:white;font-size:12px;color:#3d4a5c;cursor:pointer;white-space:nowrap;transition:border-color 0.15s;" onmouseover="this.style.borderColor='#4a6fa5'" onmouseout="if(!document.getElementById('empCalPopup').classList.contains('show'))this.style.borderColor='#dde1e8'">
                                     <svg width="13" height="13" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                    <span id="empCalDisplay" style="color:#adb5c2;">Date Range</span>
+                                    <span id="empCalDisplay" style="color:#3d4a5c;font-weight:500;">Date Range</span>
                                 </button>
 
                             </div>
@@ -265,6 +287,8 @@
                                     <th class="text-left">Visitor ID</th>
                                     <th class="text-left">Visitor</th>
                                     <th class="text-left">Aadhaar</th>
+                                    <th class="text-left">Email</th>
+                                    <th class="text-left">Mobile</th>
                                     <th class="text-left">Reg Date/Time</th>
                                     <th class="text-left">Scheduled</th>
                                     <th class="text-left">Entry Time</th>
@@ -278,6 +302,7 @@
                             <tbody id="historyBody" class="tbl-body"></tbody>
                         </table>
                     </div>
+                    <div id="visitorPagination"></div>
                 </div>
 
             </div>
@@ -302,7 +327,29 @@
             </div>
             <div>
                 <label class="field-label">New Time</label>
-                <input id="modalTime" type="time" class="field-input">
+                <div style="display:grid;grid-template-columns:1fr 10px 1fr 1fr;align-items:center;gap:6px;">
+                    <select id="modalTimeHH" onchange="syncModalTime()" class="field-input" style="padding:10px 8px;text-align:center;cursor:pointer;width:100%;">
+                        <option value="">HH</option>
+                        <option value="01">01</option><option value="02">02</option><option value="03">03</option>
+                        <option value="04">04</option><option value="05">05</option><option value="06">06</option>
+                        <option value="07">07</option><option value="08">08</option><option value="09">09</option>
+                        <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+                    </select>
+                    <span style="font-weight:700;color:#374151;text-align:center;">:</span>
+                    <select id="modalTimeMM" onchange="syncModalTime()" class="field-input" style="padding:10px 8px;text-align:center;cursor:pointer;width:100%;">
+                        <option value="">MM</option>
+                        <option value="00">00</option><option value="05">05</option><option value="10">10</option>
+                        <option value="15">15</option><option value="20">20</option><option value="25">25</option>
+                        <option value="30">30</option><option value="35">35</option><option value="40">40</option>
+                        <option value="45">45</option><option value="50">50</option><option value="55">55</option>
+                    </select>
+                    <select id="modalTimeAMPM" onchange="syncModalTime()" class="field-input" style="padding:10px 8px;text-align:center;cursor:pointer;width:100%;">
+                        <option value="">AM/PM</option>
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
+                </div>
+                <input id="modalTime" type="hidden">
             </div>
             <div>
                 <label class="field-label">New Purpose <span style="color:#9ca3af;">(optional)</span></label>
@@ -347,6 +394,8 @@ let currentEmployeeEmail   = "";
 let myVisitorsData         = [];
 let currentRescheduleIndex = -1;
 const aadhaarStore         = {};
+let _currentPage           = 1;
+const PAGE_SIZE            = 10;
 
 // ══════════════════════════════════════════════════════════
 //  API HELPER
@@ -438,6 +487,10 @@ async function submitData() {
     if (!visitorName || !purpose || !date || !time || aadhaar.length !== 12) return showMessage("Please fill all required fields correctly (Aadhaar must be 12 digits)", "text-red-600");
     if (!email) return showMessage("Please enter visitor email to send confirmation", "text-red-600");
     if (!email.toLowerCase().endsWith('@gmail.com')) return showMessage("Visitor email must be a @gmail.com address", "text-red-600");
+    const emailLocal = email.slice(0, email.toLowerCase().lastIndexOf('@gmail.com'));
+    if (!emailLocal || !/^[a-zA-Z0-9._-]+$/.test(emailLocal)) return showMessage("Email has invalid characters before @gmail.com", "text-red-600");
+    const mobile = document.getElementById("visitorMobile").value.trim();
+    if (!mobile || mobile.length !== 10) return showMessage("Please enter a valid 10-digit mobile number", "text-red-600");
     const btn = document.querySelector('button[onclick="submitData()"]');
     if (btn) btn.disabled = true;
     try {
@@ -472,13 +525,14 @@ async function submitData() {
         }
         showMessage("Step 4/4: Registering visitor…", "text-blue-600");
         const istNow = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Kolkata' }).replace(' ', 'T') + '+05:30';
-        const payload = { visitor_id, name: visitorName, aadhaar, email, date, time, purpose, emp_name: currentEmployee, emp_id: currentEmployeeId, status: "pending", rescheduled_date: "", rescheduled_time: "", aadhaar_key, reg_time: istNow };
+        const payload = { visitor_id, name: visitorName, aadhaar, email, mobile, date, time, purpose, emp_name: currentEmployee, emp_id: currentEmployeeId, status: "pending", rescheduled_date: "", rescheduled_time: "", aadhaar_key, reg_time: istNow };
         await apiCall('/register', { method:'POST', body:JSON.stringify(payload) });
         await sendVisitorMail({ to_email: email, visitor_name: visitorName, visitor_id, visit_date: date, visit_time: time, purpose, emp_name: currentEmployee, mail_type: "New Visit Scheduled" });
         showMessage(`Visitor Registered! ID: <strong>${visitor_id}</strong>${aadhaar_key ? ' · Aadhaar ✓' : ''} · Email sent`, "text-green-600");
         document.getElementById("visitorName").value = ""; document.getElementById("aadhaar").value = "";
         document.getElementById("visitorEmail").value = ""; document.getElementById("purpose").value = "";
-        document.getElementById("time").value = ""; document.getElementById("aadhaarFile").value = "";
+        document.getElementById("visitorMobile").value = "";
+        clearTimeSelects(); document.getElementById("aadhaarFile").value = "";
         document.getElementById("fileStatus").textContent = "";
         refreshMyVisitors();
     } catch(e) { console.error("submitData error:", e); showMessage("Error: " + e.message, "text-red-600"); }
@@ -492,11 +546,22 @@ function renderVisitorRows(myVisitors) {
     const tbody = document.getElementById("historyBody");
     myVisitorsData = [...myVisitors];
     tbody.innerHTML = "";
+
     if (myVisitors.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12" class="p-10 text-center text-gray-400" style="font-size:13px;">No visitors found</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="14" class="p-10 text-center text-gray-400" style="font-size:13px;">No visitors found</td></tr>`;
+        renderPagination(0, 0);
         return;
     }
-        myVisitors.forEach((v, index) => {
+
+    // Pagination
+    const totalPages = Math.ceil(myVisitors.length / PAGE_SIZE);
+    if (_currentPage > totalPages) _currentPage = totalPages;
+    if (_currentPage < 1) _currentPage = 1;
+    const start = (_currentPage - 1) * PAGE_SIZE;
+    const pageVisitors = myVisitors.slice(start, start + PAGE_SIZE);
+
+    pageVisitors.forEach((v, idx) => {
+            const globalIndex = start + idx;
             const reschedHTML = v.rescheduled_date
                 ? `<span style="color:#b45309;font-weight:500;font-size:12px;">${v.rescheduled_date}</span>`
                 : `<span style="color:#d1d5db;">—</span>`;
@@ -523,12 +588,17 @@ function renderVisitorRows(myVisitors) {
             const empNameDisplay = v.emp_name
                 ? `<span style="font-size:12px;color:${isMyVisitor?'#2563eb':'#374151'};font-weight:${isMyVisitor?'600':'400'};">${v.emp_name}${isMyVisitor ? ' <span style="background:#dbeafe;color:#1d4ed8;font-size:10px;padding:1px 5px;border-radius:4px;font-weight:600;">You</span>' : ''}</span>`
                 : `<span style="color:#d1d5db;">—</span>`;
+            const emailDisplay = v.email && v.email !== 'N/A'
+                ? `<span style="font-size:12px;color:#374151;">${v.email}</span>`
+                : `<span style="color:#d1d5db;">—</span>`;
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td style="color:#9ca3af;">${index+1}</td>
+                <td style="color:#9ca3af;">${start + idx + 1}</td>
                 <td style="font-weight:600;color:#1a1d23;font-family:monospace;font-size:12px;">${v.visitor_id||'—'}</td>
                 <td style="font-weight:500;">${v.name||'—'}</td>
                 <td style="font-size:12px;color:#6b7280;">${v.aadhaar||'—'}</td>
+                <td>${emailDisplay}</td>
+                <td style="font-size:12px;color:#374151;">${v.mobile||'—'}</td>
                 <td>${regTimeHTML}</td>
                 <td style="font-size:12px;color:#374151;">${v.date?v.date.split('T')[0]:''} ${v.time||''}</td>
                 <td>${entryTimeHTML}</td>
@@ -536,21 +606,52 @@ function renderVisitorRows(myVisitors) {
                 <td style="color:#374151;">${v.purpose||'—'}</td>
                 <td>${empNameDisplay}</td>
                 <td>${docBtn}</td>
-                <td><button onclick="initReschedule(${index})" class="btn-amber-sm">Reschedule</button></td>`;
+                <td><button onclick="initReschedule(${globalIndex})" class="btn-amber-sm">Reschedule</button></td>`;
             tbody.appendChild(row);
     });
+
+    renderPagination(myVisitors.length, totalPages);
+}
+
+function renderPagination(total, totalPages) {
+    let paginationEl = document.getElementById('visitorPagination');
+    if (!paginationEl) return;
+    if (total === 0 || totalPages <= 1) { paginationEl.innerHTML = ''; return; }
+
+    const start = (_currentPage - 1) * PAGE_SIZE + 1;
+    const end   = Math.min(_currentPage * PAGE_SIZE, total);
+    let html = `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid #f0f2f5;font-size:12.5px;color:#6b7280;">
+        <span>Showing <strong>${start}–${end}</strong> of <strong>${total}</strong> visitors</span>
+        <div style="display:flex;gap:4px;align-items:center;">`;
+    html += `<button onclick="changePage(1)" ${_currentPage===1?'disabled':''} style="padding:4px 8px;border:1px solid #e2e6ed;border-radius:6px;background:white;cursor:pointer;font-size:12px;color:#374151;${_currentPage===1?'opacity:0.4;cursor:not-allowed;':''}">«</button>`;
+    html += `<button onclick="changePage(${_currentPage-1})" ${_currentPage===1?'disabled':''} style="padding:4px 8px;border:1px solid #e2e6ed;border-radius:6px;background:white;cursor:pointer;font-size:12px;color:#374151;${_currentPage===1?'opacity:0.4;cursor:not-allowed;':''}">‹</button>`;
+    for (let p = Math.max(1, _currentPage-1); p <= Math.min(totalPages, _currentPage+1); p++) {
+        const active = p === _currentPage;
+        html += `<button onclick="changePage(${p})" style="padding:4px 9px;border:1px solid ${active?'#2c3e5d':'#e2e6ed'};border-radius:6px;background:${active?'#2c3e5d':'white'};color:${active?'white':'#374151'};font-size:12px;font-weight:${active?'600':'400'};cursor:pointer;">${p}</button>`;
+    }
+    html += `<button onclick="changePage(${_currentPage+1})" ${_currentPage===totalPages?'disabled':''} style="padding:4px 8px;border:1px solid #e2e6ed;border-radius:6px;background:white;cursor:pointer;font-size:12px;color:#374151;${_currentPage===totalPages?'opacity:0.4;cursor:not-allowed;':''}">›</button>`;
+    html += `<button onclick="changePage(${totalPages})" ${_currentPage===totalPages?'disabled':''} style="padding:4px 8px;border:1px solid #e2e6ed;border-radius:6px;background:white;cursor:pointer;font-size:12px;color:#374151;${_currentPage===totalPages?'opacity:0.4;cursor:not-allowed;':''}">»</button>`;
+    html += `</div></div>`;
+    paginationEl.innerHTML = html;
+}
+
+function changePage(p) {
+    _currentPage = p;
+    if (!window._allLoadedVisitors) return;
+    renderVisitorRows(applyVisitorFilters(window._allLoadedVisitors));
 }
 
 async function refreshMyVisitors() {
+    _currentPage = 1;
     const tbody = document.getElementById("historyBody");
-    tbody.innerHTML = `<tr><td colspan="12" class="p-10 text-center text-gray-400" style="font-size:13px;">Loading…</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="14" class="p-10 text-center text-gray-400" style="font-size:13px;">Loading…</td></tr>`;
     try {
         const data      = await apiCall('/visitors');
         let allVisitors = Array.isArray(data) ? data : (data.Items || []);
         window._allLoadedVisitors = allVisitors;
         renderVisitorRows(applyVisitorFilters(allVisitors));
     } catch(e) {
-        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-red-500" style="font-size:13px;">Failed to load. Check API.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="14" class="p-8 text-center text-red-500" style="font-size:13px;">Failed to load. Check API.</td></tr>`;
     }
 }
 
@@ -562,7 +663,11 @@ function viewAadhaarSession(visitor_id) {
     if (!file) return;
     const area = document.getElementById("aadhaarPreviewArea");
     if (file.type === 'application/pdf') {
-        area.innerHTML = `<iframe src="${file.dataUrl}" class="w-full" style="height:500px;border:none;border-radius:10px;"></iframe>`;
+        area.innerHTML = `<div style="width:100%;height:500px;overflow-y:auto;overflow-x:hidden;border-radius:10px;background:#f5f5f5;">
+            <object data="${file.dataUrl}#toolbar=0&navpanes=0&scrollbar=1" type="application/pdf" style="width:100%;min-height:500px;border:none;display:block;">
+                <embed src="${file.dataUrl}#toolbar=0&navpanes=0" type="application/pdf" style="width:100%;min-height:500px;border:none;" />
+            </object>
+        </div>`;
     } else {
         area.innerHTML = `<img src="${file.dataUrl}" alt="Aadhaar" class="max-w-full max-h-[500px] rounded-xl object-contain">`;
     }
@@ -578,7 +683,11 @@ async function viewAadhaarS3(visitor_id) {
         const url  = data.presigned_url;
         const ext  = url.split('?')[0].split('.').pop().toLowerCase();
         if (ext === 'pdf') {
-            area.innerHTML = `<iframe src="${url}" class="w-full" style="height:500px;border:none;border-radius:10px;"></iframe>`;
+            area.innerHTML = `<div style="width:100%;height:500px;overflow-y:auto;overflow-x:hidden;border-radius:10px;background:#f5f5f5;">
+                <object data="${url}#toolbar=0&navpanes=0&scrollbar=1&view=FitH" type="application/pdf" style="width:100%;min-height:500px;border:none;display:block;">
+                    <embed src="${url}#toolbar=0&navpanes=0" type="application/pdf" style="width:100%;min-height:500px;border:none;" />
+                </object>
+            </div>`;
         } else {
             area.innerHTML = `<img src="${url}" alt="Aadhaar" class="max-w-full max-h-[500px] rounded-xl object-contain">`;
         }
@@ -622,12 +731,42 @@ function initReschedule(index) {
     const v = myVisitorsData[index];
     document.getElementById("modalVisitorName").innerHTML = `Visitor: <strong>${v.name||'Visitor'}</strong>`;
     document.getElementById("modalDate").value    = v.rescheduled_date || (v.date?v.date.split('T')[0]:'');
-    document.getElementById("modalTime").value    = v.rescheduled_time || v.time || '';
     document.getElementById("modalPurpose").value = v.purpose || '';
+    // Populate HH:MM:AM/PM dropdowns from existing time
+    const rawTime = v.rescheduled_time || v.time || '';
+    document.getElementById('modalTime').value = rawTime;
+    if (rawTime) {
+        const parts = rawTime.split(':');
+        let h24 = parseInt(parts[0], 10);
+        const mm = parts[1] ? parts[1].substring(0,2) : '00';
+        const ampm = h24 >= 12 ? 'PM' : 'AM';
+        let h12 = h24 % 12 || 12;
+        document.getElementById('modalTimeHH').value   = String(h12).padStart(2,'0');
+        document.getElementById('modalTimeMM').value   = mm;
+        document.getElementById('modalTimeAMPM').value = ampm;
+    } else {
+        document.getElementById('modalTimeHH').value   = '';
+        document.getElementById('modalTimeMM').value   = '';
+        document.getElementById('modalTimeAMPM').value = '';
+    }
     document.getElementById("rescheduleModal").classList.remove("hidden");
 }
 
 function closeRescheduleModal() { document.getElementById("rescheduleModal").classList.add("hidden"); }
+
+function syncModalTime() {
+    const hh   = document.getElementById('modalTimeHH').value;
+    const mm   = document.getElementById('modalTimeMM').value;
+    const ampm = document.getElementById('modalTimeAMPM').value;
+    if (hh && mm && ampm) {
+        let h24 = parseInt(hh, 10);
+        if (ampm === 'AM' && h24 === 12) h24 = 0;
+        if (ampm === 'PM' && h24 !== 12) h24 += 12;
+        document.getElementById('modalTime').value = String(h24).padStart(2,'0') + ':' + mm;
+    } else {
+        document.getElementById('modalTime').value = '';
+    }
+}
 
 // ══════════════════════════════════════════════════════════
 //  UTILITIES
@@ -644,6 +783,7 @@ function onlyLetters(e) {
 
 function formatAadhaar(input) {
     let v = input.value.replace(/\s+/g,'').replace(/[^0-9]/g,'');
+    if (v.length > 0 && v[0] === '0') v = v.slice(1); // no leading zero
     if (v.length > 12) v = v.slice(0, 12);
     let f = '';
     for (let i = 0; i < v.length; i++) { if (i > 0 && i % 4 === 0) f += ' '; f += v[i]; }
@@ -659,50 +799,84 @@ function logout() { location.reload(); }
 // ══════════════════════════════════════════════════════════
 function onDateChange() {
     const dateInput = document.getElementById("date");
-    const timeInput = document.getElementById("time");
     const timeWrap  = document.getElementById("timeFieldWrap");
-    // Use IST for today comparison
     const nowIST  = new Date(new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Kolkata' }));
     const today   = nowIST.getFullYear() + '-' + String(nowIST.getMonth()+1).padStart(2,'0') + '-' + String(nowIST.getDate()).padStart(2,'0');
-    const hh      = String(nowIST.getHours()).padStart(2,'0');
-    const mm      = String(nowIST.getMinutes()).padStart(2,'0');
     if (dateInput.value) {
         timeWrap.style.display = '';
     } else {
         timeWrap.style.display = 'none';
-        timeInput.value = '';
+        clearTimeSelects();
         return;
     }
     if (dateInput.value === today) {
-        timeInput.min   = `${hh}:${mm}`;
-        timeInput.value = `${hh}:${mm}`; // auto-set current IST time
+        // Auto-set current IST time in custom selects
+        let hh = nowIST.getHours();
+        const mm = String(nowIST.getMinutes()).padStart(2,'0');
+        const ampm = hh >= 12 ? 'PM' : 'AM';
+        hh = hh % 12 || 12;
+        const hhStr = String(hh).padStart(2,'0');
+        document.getElementById('timeHH').value   = hhStr;
+        document.getElementById('timeMM').value   = mm;
+        document.getElementById('timeAMPM').value = ampm;
+        syncTimeField();
     } else {
-        timeInput.min   = '';
-        timeInput.value = '';
+        clearTimeSelects();
+    }
+}
+
+function clearTimeSelects() {
+    document.getElementById('timeHH').value   = '';
+    document.getElementById('timeMM').value   = '';
+    document.getElementById('timeAMPM').value = '';
+    document.getElementById('time').value     = '';
+}
+
+function syncTimeField() {
+    const hh   = document.getElementById('timeHH').value;
+    const mm   = document.getElementById('timeMM').value;
+    const ampm = document.getElementById('timeAMPM').value;
+    if (hh && mm && ampm) {
+        // Convert to 24h for the hidden input (used in submit)
+        let h24 = parseInt(hh, 10);
+        if (ampm === 'AM' && h24 === 12) h24 = 0;
+        if (ampm === 'PM' && h24 !== 12) h24 += 12;
+        document.getElementById('time').value = String(h24).padStart(2,'0') + ':' + mm;
+    } else {
+        document.getElementById('time').value = '';
     }
 }
 
 function onTimeChange() {
-    const dateInput = document.getElementById("date");
-    const timeInput = document.getElementById("time");
-    const nowIST    = new Date(new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Kolkata' }));
-    const today     = nowIST.getFullYear() + '-' + String(nowIST.getMonth()+1).padStart(2,'0') + '-' + String(nowIST.getDate()).padStart(2,'0');
-    if (dateInput.value === today) {
-        const cur = `${String(nowIST.getHours()).padStart(2,'0')}:${String(nowIST.getMinutes()).padStart(2,'0')}`;
-        if (timeInput.value < cur) { timeInput.value = cur; showMessage("Time set to current time.", "text-amber-600"); }
-    }
+    // handled by syncTimeField via select onchange
 }
 
 function validateAadhaarInline(input) {
-    const digits = input.value.replace(/\s+/g,'');
+    const raw = input.value.replace(/\s+/g,'');
+    const digits = raw.replace(/[^0-9]/g,'');
     const err = document.getElementById("aadhaarError");
-    if (digits.length > 0 && digits.length < 12) { err.style.display=''; } else { err.style.display='none'; }
+    if (raw.length > 0 && raw[0] === '0') {
+        err.textContent = '⚠ Aadhaar cannot start with 0';
+        err.style.display = '';
+    } else if (digits.length > 0 && digits.length < 12) {
+        err.textContent = '⚠ Aadhaar must be exactly 12 digits';
+        err.style.display = '';
+    } else {
+        err.style.display = 'none';
+    }
 }
 
 function validateEmailInline(input) {
     const val = input.value.trim();
     const err = document.getElementById("emailError");
-    if (val.length > 0 && !val.toLowerCase().endsWith('@gmail.com')) { err.style.display=''; } else { err.style.display='none'; }
+    if (val.length === 0) { err.style.display='none'; return; }
+    // Must end with @gmail.com
+    if (!val.toLowerCase().endsWith('@gmail.com')) { err.textContent='⚠ Email must end with @gmail.com'; err.style.display=''; return; }
+    // Validate local part (before @gmail.com) — only allow a-z, 0-9, dots, hyphens, underscores
+    const localPart = val.slice(0, val.toLowerCase().lastIndexOf('@gmail.com'));
+    if (localPart.length === 0) { err.textContent='⚠ Enter a name before @gmail.com'; err.style.display=''; return; }
+    if (!/^[a-zA-Z0-9._-]+$/.test(localPart)) { err.textContent='⚠ Only letters, numbers, . _ - allowed before @gmail.com'; err.style.display=''; return; }
+    err.style.display='none';
 }
 
 function clearVisitorFilters() {
@@ -713,6 +887,7 @@ function clearVisitorFilters() {
 
 // ── Live search (no API call — filters already-loaded data) ──
 function liveSearchVisitors() {
+    _currentPage = 1;
     if (!window._allLoadedVisitors) { refreshMyVisitors(); return; }
     renderVisitorRows(applyVisitorFilters(window._allLoadedVisitors));
 }
@@ -724,13 +899,16 @@ function applyVisitorFilters(allVisitors) {
     let result = allVisitors;
     if (search) {
         result = result.filter(v =>
-            (v.name       && v.name.toLowerCase().includes(search))      ||
-            (v.aadhaar    && v.aadhaar.includes(search))                  ||
-            (v.visitor_id && v.visitor_id.toLowerCase().includes(search)) ||
-            (v.purpose    && v.purpose.toLowerCase().includes(search))    ||
-            (v.email      && v.email.toLowerCase().includes(search))      ||
-            (v.emp_name   && v.emp_name.toLowerCase().includes(search))   ||
-            (v.status     && v.status.toLowerCase().includes(search))
+            (v.name              && v.name.toLowerCase().includes(search))              ||
+            (v.aadhaar           && v.aadhaar.includes(search))                          ||
+            (v.visitor_id        && v.visitor_id.toLowerCase().includes(search))         ||
+            (v.purpose           && v.purpose.toLowerCase().includes(search))            ||
+            (v.email             && v.email.toLowerCase().includes(search))              ||
+            (v.emp_name          && v.emp_name.toLowerCase().includes(search))           ||
+            (v.status            && v.status.toLowerCase().includes(search))             ||
+            (v.date              && v.date.split('T')[0].includes(search))               ||
+            (v.rescheduled_date  && v.rescheduled_date.includes(search))                 ||
+            (v.time              && v.time.includes(search))
         );
     }
     if (dateFrom || dateTo) {
@@ -777,13 +955,9 @@ function toggleEmpCal(e) {
     _empCalYear  = new Date().getFullYear();
     _empCalMonth = new Date().getMonth();
     renderEmpCal();
-    setTimeout(() => document.addEventListener('click', closeEmpCalOutside), 0);
 }
 function closeEmpCalOutside(e) {
-    if (!e.target.closest('#empCalWrapper')) {
-        document.getElementById('empCalPopup').classList.remove('show');
-        document.removeEventListener('click', closeEmpCalOutside);
-    }
+    // intentionally disabled — calendar closes only on Apply or Clear
 }
 function empCalChangeMonth(dir) {
     _empCalMonth += dir;
@@ -833,7 +1007,8 @@ function empCalClear() {
     _empSelStart = null; _empSelEnd = null;
     window._empDateFrom = ''; window._empDateTo = '';
     document.getElementById('empCalDisplay').textContent = 'Date Range';
-    document.getElementById('empCalDisplay').style.color = '#adb5c2';
+    document.getElementById('empCalDisplay').style.color = '#3d4a5c';
+    document.getElementById('empCalDisplay').style.fontWeight = '500';
     document.getElementById('empCalPopup').classList.remove('show');
 }
 function applyEmpCalFilter() {
@@ -846,6 +1021,7 @@ function applyEmpCalFilter() {
             : fmt(_empSelStart);
         document.getElementById('empCalDisplay').textContent = label;
         document.getElementById('empCalDisplay').style.color = '#1e2330';
+        document.getElementById('empCalDisplay').style.fontWeight = '700';
     }
     document.getElementById('empCalPopup').classList.remove('show');
     refreshMyVisitors();
