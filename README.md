@@ -68,8 +68,8 @@ The frontend uses static HTML, CSS, and JavaScript. The backend uses a Python AW
 
 ```text
 QT project/
-|-- Main.html
-|-- Main Admin.html
+|-- Web.html
+|-- Admin.html
 |-- Main employee.html
 |-- Main security.html
 |-- lambda functions.py
@@ -78,8 +78,8 @@ QT project/
 
 ## File Guide
 
-- `Main.html`: public landing page with role selection and company branding
-- `Main Admin.html`: admin dashboard for visitor approvals and user management
+- `Web.html`: public landing page with role selection and company branding
+- `Admin.html`: admin dashboard for visitor approvals and user management
 - `Main employee.html`: employee portal for visitor registration, Aadhaar upload, and visit tracking
 - `Main security.html`: security dashboard for arrival validation and exit management
 - `lambda functions.py`: AWS Lambda backend with DynamoDB and S3 integrations
@@ -88,8 +88,8 @@ QT project/
 
 ```text
 Frontend Pages
-  |-- Main.html
-  |-- Main Admin.html
+  |-- Web.html
+  |-- Admin.html
   |-- Main employee.html
   |-- Main security.html
           |
